@@ -1,0 +1,11 @@
+﻿<RevitAddIns>
+    <AddIn Type="Command">
+        <Name>FirstRevitCommand</Name>
+        <Assembly>FirstRevitPlugin.dll</Assembly>
+        <AddInId>0F296157-A2DC-4532-BB1B-6D6D3462F15A</AddInId>
+        <FullClassName>FirstRevitPlugin.FirstRevitCommand</FullClassName>
+        <Text>Моя первая команда</Text>
+        <VendorId>MyId</VendorId>
+        <VendorDescription></VendorDescription>
+    </AddIn>
+</RevitAddIns>
