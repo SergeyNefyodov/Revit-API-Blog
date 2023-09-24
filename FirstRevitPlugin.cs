@@ -1,4 +1,5 @@
-﻿using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.ApplicationServices;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Mechanical;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
@@ -20,6 +21,79 @@ namespace FirstRevitPlugin
         static AddInId addinId = new AddInId(new Guid("0F296157-A2DC-4532-BB1B-6D6D3462F15A"));
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            Application application = commandData.Application.Application;
+            Document doc = commandData.Application.ActiveUIDocument.Document;
+            string parameterName1 = "SN_Параметр 1";
+            string parameterName2 = "SN_Параметр 2";
+            string parameterName3 = "SN_Параметр 3";
+
+            var parametersFile = application.OpenSharedParameterFile();
+            Definition def2 = FindDefinition(parameterName2, parametersFile);
+            Definition def3 = FindDefinition(parameterName3, parametersFile);
+            var sharedParameters = new FilteredElementCollector(doc).OfClass(typeof(SharedParameterElement)).ToElements().Cast<SharedParameterElement>();
+            var bindings = doc.ParameterBindings;
+            CategorySet categorySet = CreateFullCategorySet(doc);
+            InstanceBinding binding = new InstanceBinding(categorySet);
+            using (Transaction t = new Transaction(doc, "Изменение категорий параметра"))
+            {
+                t.Start();
+                foreach (var parameter in sharedParameters)
+                {
+                    if (parameter.GetDefinition().Name == parameterName1)
+                    {
+                        bindings.ReInsert(parameter.GetDefinition(), binding);
+                        parameter.GetDefinition().SetAllowVaryBetweenGroups(doc, true);
+                    }
+                }
+                var instanceBinding = new InstanceBinding(categorySet);
+                var typeBinding = new TypeBinding(categorySet);
+                bindings.Insert(def2, instanceBinding);
+                bindings.Insert(def3, typeBinding);
+                t.Commit();
+            }
+            return Result.Succeeded;
+        }
+
+        private static Definition FindDefinition(string parameterName, DefinitionFile parametersFile)
+        {            
+            foreach (var definitionGroup in parametersFile.Groups)
+            {
+                foreach (ExternalDefinition definition in definitionGroup.Definitions)
+                {
+                    if (definition.Name == parameterName) return definition;                   
+                }
+            }
+
+            return null;
+        }
+
+        private static CategorySet CreateFullCategorySet(Document doc)
+        {
+            var categorySet = new CategorySet();
+            foreach (Category category in doc.Settings.Categories)
+            {
+                if (category.AllowsBoundParameters)
+                {
+                    categorySet.Insert(category);
+                }
+                else continue;
+                if (category.SubCategories.IsEmpty == false)
+                {
+                    foreach (var value in category.SubCategories)
+                    {
+                        if (value is Category subCategory)
+                        {
+                            if (subCategory.AllowsBoundParameters) categorySet.Insert(subCategory);
+                        }
+                    }
+                }
+            }
+
+            return categorySet;
+        }
+
+        private static void WriteToFile(ExternalCommandData commandData)
+        {
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
             Document doc = uidoc.Document;
             var walls = new FilteredElementCollector(doc)
@@ -28,7 +102,7 @@ namespace FirstRevitPlugin
                 .Cast<Wall>();
 
             string filename = $@"C:\Users\{Environment.UserName}\Documents\Revit API Blog\Data.txt";
-            if (File.Exists(filename)) 
+            if (File.Exists(filename))
             {
                 File.Delete(filename);
             }
@@ -42,8 +116,6 @@ namespace FirstRevitPlugin
                 }
                 writer.Close();
             }
-
-            return Result.Succeeded;
         }
 
         public void FindIntersection(ExternalCommandData commandData)
