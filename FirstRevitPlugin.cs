@@ -21,6 +21,20 @@ namespace FirstRevitPlugin
         static AddInId addinId = new AddInId(new Guid("0F296157-A2DC-4532-BB1B-6D6D3462F15A"));
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            UIDocument uidoc = commandData.Application.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Element el = null;
+            double d = 0;
+            d = el.get_Parameter(BuiltInParameter.SSE_POINT_ElEVATION).AsDouble(); // будет исключение
+            var parameter = el.get_Parameter(BuiltInParameter.SSE_POINT_ElEVATION);
+            if (parameter != null)
+                d = parameter.AsDouble(); // тут всё окей
+            else
+                return Result.Failed;
+            return Result.Succeeded;
+        }
+        private static void ManageParameters(ExternalCommandData commandData)
+        {
             Application application = commandData.Application.Application;
             Document doc = commandData.Application.ActiveUIDocument.Document;
             string parameterName1 = "SN_Параметр 1";
@@ -51,9 +65,7 @@ namespace FirstRevitPlugin
                 bindings.Insert(def3, typeBinding);
                 t.Commit();
             }
-            return Result.Succeeded;
         }
-
         private static Definition FindDefinition(string parameterName, DefinitionFile parametersFile)
         {            
             foreach (var definitionGroup in parametersFile.Groups)
@@ -147,12 +159,44 @@ namespace FirstRevitPlugin
             TimeSpan elapsedTime = stopwatch.Elapsed;
             TaskDialog.Show("Время работы", elapsedTime.TotalSeconds.ToString());
             TaskDialog.Show("Найдено пересечений " + counter.ToString(), result);
+        }
 
-            double meters = 1000;
-            double feet = 20;
-            UnitUtils.ConvertFromInternalUnits(feet, UnitTypeId.Millimeters); // из футов в метры
-            UnitUtils.ConvertToInternalUnits(meters, UnitTypeId.Millimeters); // из метров во внутренние единицы (футы)
-
+        private void Numerate(ExternalCommandData commandData)
+        {
+            UIDocument uidoc = commandData.Application.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            int i = 1;
+            string prefix = "PS"; // поменяйте на свой или оставьте пустым
+            string parameterName = "Марка"; // выберите свой текстовый параметр
+            using (TransactionGroup group = new TransactionGroup(doc, "Нумерация элементов")) 
+            {
+                group.Start();
+                try
+                {
+                    using (Transaction t = new Transaction(doc, "Нумерация элементов"))
+                    {
+                        t.Start();
+                        Reference reference = uidoc.Selection.PickObject(ObjectType.Element, $"Выберите элемент {i}");
+                        Parameter parameter = doc.GetElement(reference).LookupParameter(parameterName);
+                        if (parameter != null)
+                        {
+                            parameter.Set(prefix + i.ToString());
+                            i++;
+                            t.Commit();
+                        }
+                        else
+                        {
+                            TaskDialog.Show("Ошибка", $"У элемента {reference.ElementId} нет параметра {parameterName})");
+                            t.Commit();
+                            group.Assimilate();
+                        }
+                    }                       
+                }
+                catch
+                {
+                    group.Assimilate();
+                }
+            }
         }
     }
 }
