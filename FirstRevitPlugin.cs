@@ -21,16 +21,7 @@ namespace FirstRevitPlugin
         static AddInId addinId = new AddInId(new Guid("0F296157-A2DC-4532-BB1B-6D6D3462F15A"));
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIDocument uidoc = commandData.Application.ActiveUIDocument;
-            Document doc = uidoc.Document;
-            Element el = null;
-            double d = 0;
-            d = el.get_Parameter(BuiltInParameter.SSE_POINT_ElEVATION).AsDouble(); // будет исключение
-            var parameter = el.get_Parameter(BuiltInParameter.SSE_POINT_ElEVATION);
-            if (parameter != null)
-                d = parameter.AsDouble(); // тут всё окей
-            else
-                return Result.Failed;
+            ManageParameters(commandData);
             return Result.Succeeded;
         }
         private static void ManageParameters(ExternalCommandData commandData)
