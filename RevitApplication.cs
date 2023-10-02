@@ -24,7 +24,7 @@ namespace FirstRevitPlugin
             string tabName = "My Custom Tab";
             application.CreateRibbonTab(tabName);
             RibbonPanel ribbonPanel = application.CreateRibbonPanel(tabName, "Автоматизация");
-            AddButton(ribbonPanel, "Button 1", assemblyPath, nameof(FirstRevitPlugin.FirstRevitCommand), "Всплывающая подсказка");
+            AddButton(ribbonPanel, "Button 1", assemblyPath, "FirstRevitPlugin.FirstRevitCommand", "Всплывающая подсказка");
             return Result.Succeeded;
         }
 

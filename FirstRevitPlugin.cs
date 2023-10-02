@@ -21,7 +21,42 @@ namespace FirstRevitPlugin
         static AddInId addinId = new AddInId(new Guid("0F296157-A2DC-4532-BB1B-6D6D3462F15A"));
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            ManageParameters(commandData);
+            UIDocument uidoc = commandData.Application.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            int i = 1;
+            string prefix = "PS"; // поменяйте на свой или оставьте пустым
+            string parameterName = "Марка"; // выберите свой текстовый параметр
+            using (TransactionGroup group = new TransactionGroup(doc, "Нумерация элементов"))
+            {
+                group.Start();
+                try
+                {
+                    using (Transaction t = new Transaction(doc, "Нумерация элементов"))
+                    {
+                        t.Start();
+                        Reference reference = uidoc.Selection.PickObject(ObjectType.Element, $"Выберите элемент {i}");
+                        Parameter parameter = doc.GetElement(reference).LookupParameter(parameterName);
+                        if (parameter != null)
+                        {
+                            parameter.Set(prefix + i.ToString());
+                            i++;
+                            t.Commit();
+                        }
+                        else
+                        {
+                            TaskDialog.Show("Ошибка", $"У элемента {reference.ElementId} нет параметра {parameterName})");
+                            t.Commit();
+                            group.Assimilate();
+                        }
+                    }
+                }
+                catch
+                {
+                    group.Assimilate();
+                }
+            }
+            //ManageParameters(commandData);
+            //FindIntersection(commandData);
             return Result.Succeeded;
         }
         private static void ManageParameters(ExternalCommandData commandData)
@@ -125,7 +160,6 @@ namespace FirstRevitPlugin
         {
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
             Document doc = uidoc.Document;
-            uidoc.Selection.PickObject(ObjectType.Element);
             int counter = 0;
             string result = "";
             Stopwatch stopwatch = new Stopwatch();
@@ -139,7 +173,7 @@ namespace FirstRevitPlugin
                 Outline outline = new Outline(bb.Min, bb.Max);
                 BoundingBoxIntersectsFilter bbFilter = new BoundingBoxIntersectsFilter(outline);
                 ElementIntersectsElementFilter filter = new ElementIntersectsElementFilter(wall);
-                var ducts = new FilteredElementCollector(doc).OfClass(typeof(Duct)).WherePasses(bbFilter).WherePasses(filter).ToElements();
+                var ducts = new FilteredElementCollector(doc).WherePasses(filter).WherePasses(bbFilter).OfClass(typeof(Duct)).ToElements();
                 foreach (var el in ducts)
                 {
                     result += wall.Id.ToString() + ";" + el.Id.ToString() + Environment.NewLine;
