@@ -7,8 +7,8 @@
     <ProjectGuid>{5ADB0527-5CF8-4778-A299-C3ADF01B4D41}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>c</RootNamespace>
-    <AssemblyName>FIrstRevitPlugin</AssemblyName>
+    <RootNamespace>FirstRevitPlugin</RootNamespace>
+    <AssemblyName>FirstRevitPlugin</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DwgMepCurveCreator\Command.cs" />
     <Compile Include="FirstRevitPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevitApplication.cs" />
