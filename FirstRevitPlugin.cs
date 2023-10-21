@@ -196,30 +196,35 @@ namespace FirstRevitPlugin
             using (TransactionGroup group = new TransactionGroup(doc, "Нумерация элементов")) 
             {
                 group.Start();
-                try
+                while (true)
                 {
-                    using (Transaction t = new Transaction(doc, "Нумерация элементов"))
+                    try
                     {
-                        t.Start();
-                        Reference reference = uidoc.Selection.PickObject(ObjectType.Element, $"Выберите элемент {i}");
-                        Parameter parameter = doc.GetElement(reference).LookupParameter(parameterName);
-                        if (parameter != null)
+                        using (Transaction t = new Transaction(doc, "Нумерация элементов"))
                         {
-                            parameter.Set(prefix + i.ToString());
-                            i++;
-                            t.Commit();
+                            t.Start();
+                            Reference reference = uidoc.Selection.PickObject(ObjectType.Element, $"Выберите элемент {i}");
+                            Parameter parameter = doc.GetElement(reference).LookupParameter(parameterName);
+                            if (parameter != null)
+                            {
+                                parameter.Set(prefix + i.ToString());
+                                i++;
+                                t.Commit();
+                            }
+                            else
+                            {
+                                TaskDialog.Show("Ошибка", $"У элемента {reference.ElementId} нет параметра {parameterName})");
+                                t.Commit();
+                                group.Assimilate();
+                                break;
+                            }
                         }
-                        else
-                        {
-                            TaskDialog.Show("Ошибка", $"У элемента {reference.ElementId} нет параметра {parameterName})");
-                            t.Commit();
-                            group.Assimilate();
-                        }
-                    }                       
-                }
-                catch
-                {
-                    group.Assimilate();
+                    }
+                    catch
+                    {
+                        group.Assimilate();
+                        break;
+                    }
                 }
             }
         }
