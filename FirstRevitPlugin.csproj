@@ -51,6 +51,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DwgMepCurveCreator\Command.cs" />
+    <Compile Include="FailuresProcessing\TransactionHandler.cs" />
+    <Compile Include="FailuresProcessing\WarningResolver.cs" />
+    <Compile Include="FailuresProcessing\WarningSkipper.cs" />
     <Compile Include="FirstRevitPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevitApplication.cs" />
