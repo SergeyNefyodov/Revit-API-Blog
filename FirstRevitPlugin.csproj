@@ -55,11 +55,20 @@
     <Compile Include="FailuresProcessing\WarningResolver.cs" />
     <Compile Include="FailuresProcessing\WarningSkipper.cs" />
     <Compile Include="FirstRevitPlugin.cs" />
+    <Compile Include="HelloWorldCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevitApplication.cs" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\engineer1.png" />
+    <Resource Include="Resources\engineer2.png" />
+    <Resource Include="Resources\engineer3.png" />
+    <Resource Include="Resources\engineer4.png" />
+    <Resource Include="Resources\wheel16.png" />
+    <Resource Include="Resources\wheel32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
