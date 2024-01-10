@@ -1,7 +1,7 @@
 ﻿<RevitAddIns>
     <AddIn Type="Application">
         <Name>FirstRevitApplication</Name>
-        <Assembly>FirstRevitPlugin.dll</Assembly>
+        <Assembly>FirstRevitPlugin/FirstRevitPlugin.dll</Assembly>
         <AddInId>5E608034-E054-4A50-9844-8E808BE66244</AddInId>
         <FullClassName>FirstRevitPlugin.RevitApplication</FullClassName>
         <Text>Моё первое приложение</Text>
