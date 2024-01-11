@@ -14,7 +14,7 @@ namespace Build
     internal class Program
     {
         private static string projectName = "FirstRevitPlugin";
-        private static string version = "1.0.2";
+        private static string version = "1.0.4";
         static void Main(string[] args)
         {
 
@@ -31,10 +31,10 @@ namespace Build
                 },
                 Dirs = new Dir[]
                 {
-                    new InstallDir(@"C:\Users\Sergei Nefyodov\AppData\Roaming\Autodesk\Revit\Addins\2023\FirstRevitPlugin",
-                        new DirFiles(@"C:\Users\Sergei Nefyodov\source\repos\Revit-API-Blog\bin\Debug\*.*")),
-                    new Dir(@"C:\Users\Sergei Nefyodov\AppData\Roaming\Autodesk\Revit\Addins\2023\",                        
-                        new File(@"C:\Users\Sergei Nefyodov\source\repos\Revit-API-Blog\FirstRevitPlugin.addin"))
+                    new InstallDir(@"%AppDataFolder%\Autodesk\Revit\Addins\2023\",
+                        new File(@"C:\Users\Sergei Nefyodov\source\repos\Revit-API-Blog\FirstRevitPlugin.addin"),
+                        new Dir(@"FirstRevitPlugin",
+                        new DirFiles(@"C:\Users\Sergei Nefyodov\source\repos\Revit-API-Blog\bin\Debug\*.*")))
                 },
 
             };
