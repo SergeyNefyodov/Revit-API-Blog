@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FirstRevitPlugin.DwgMepCurveCreator
 {
@@ -38,9 +37,9 @@ namespace FirstRevitPlugin.DwgMepCurveCreator
                 }
             }
 
-            using (TransactionGroup tg = new TransactionGroup(document, "Создание труб"))
+            using (TransactionGroup transactionGroup = new TransactionGroup(document, "Создание труб"))
             {
-                tg.Start();
+                transactionGroup.Start();
                 foreach (var line in geometryInstance.GetInstanceGeometry())
                 {
                     if (line is PolyLine polyLine)
@@ -52,7 +51,7 @@ namespace FirstRevitPlugin.DwgMepCurveCreator
                         }
                     }
                 }
-                tg.Assimilate();
+                transactionGroup.Assimilate();
             }
 
             return Result.Succeeded;
@@ -80,7 +79,8 @@ namespace FirstRevitPlugin.DwgMepCurveCreator
                     var point1 = points[i];
 
                     var pipe = Pipe.Create(document, systemType, pipeType, level, point1, point0);
-                    pipe.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM).Set(UnitUtils.ConvertToInternalUnits(10, UnitTypeId.Millimeters));
+                    pipe.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM)
+                        .Set(UnitUtils.ConvertToInternalUnits(10, UnitTypeId.Millimeters));
                     pipes.Add(pipe);
 
                 }

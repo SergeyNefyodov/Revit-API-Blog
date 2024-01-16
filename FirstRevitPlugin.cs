@@ -23,29 +23,29 @@ namespace FirstRevitPlugin
         {
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
             Document doc = uidoc.Document;
-            int i = 1;
-            string prefix = "PS"; // поменяйте на свой или оставьте пустым
-            string parameterName = "Марка"; // выберите свой текстовый параметр
+            var i = 1;
+            var prefix = "PS"; // поменяйте на свой или оставьте пустым
+            var parameterName = "Марка"; // выберите свой текстовый параметр
             using (TransactionGroup group = new TransactionGroup(doc, "Нумерация элементов"))
             {
                 group.Start();
                 try
                 {
-                    using (Transaction t = new Transaction(doc, "Нумерация элементов"))
+                    using (Transaction transaction = new Transaction(doc, "Нумерация элементов"))
                     {
-                        t.Start();
-                        Reference reference = uidoc.Selection.PickObject(ObjectType.Element, $"Выберите элемент {i}");
-                        Parameter parameter = doc.GetElement(reference).LookupParameter(parameterName);
+                        transaction.Start();
+                        var reference = uidoc.Selection.PickObject(ObjectType.Element, $"Выберите элемент {i}");
+                        var parameter = doc.GetElement(reference).LookupParameter(parameterName);
                         if (parameter != null)
                         {
                             parameter.Set(prefix + i.ToString());
                             i++;
-                            t.Commit();
+                            transaction.Commit();
                         }
                         else
                         {
                             TaskDialog.Show("Ошибка", $"У элемента {reference.ElementId} нет параметра {parameterName})");
-                            t.Commit();
+                            transaction.Commit();
                             group.Assimilate();
                         }
                     }

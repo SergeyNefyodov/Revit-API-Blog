@@ -17,7 +17,6 @@ namespace Build
         private static string version = "1.0.4";
         static void Main(string[] args)
         {
-
             var project = new Project()
             {
                 Name = projectName,

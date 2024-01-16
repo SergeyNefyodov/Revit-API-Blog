@@ -17,8 +17,8 @@ namespace FirstRevitPlugin.FailuresProcessing
                 if (failureMessageAccessor.HasResolutionOfType(FailureResolutionType.DetachElements))
                 {
                     failureMessageAccessor.SetCurrentResolutionType(FailureResolutionType.DetachElements);
-                    FailureDefinitionId id = failureMessageAccessor.GetFailureDefinitionId();
-                    FailureSeverity failureSeverity = accessor.GetSeverity();
+                    var id = failureMessageAccessor.GetFailureDefinitionId();
+                    var failureSeverity = accessor.GetSeverity();
                     if (failureSeverity == FailureSeverity.Error || failureSeverity == FailureSeverity.Warning)
                     {
                         accessor.ResolveFailure(failureMessageAccessor);

@@ -14,8 +14,8 @@ namespace FirstRevitPlugin.FailuresProcessing
             IList<FailureMessageAccessor> failures = accessor.GetFailureMessages();
             foreach (FailureMessageAccessor failureMessageAccessor in failures)
             {
-                FailureDefinitionId id = failureMessageAccessor.GetFailureDefinitionId();
-                FailureSeverity failureSeverity = accessor.GetSeverity();
+                var id = failureMessageAccessor.GetFailureDefinitionId();
+                var failureSeverity = accessor.GetSeverity();
                 if (failureSeverity == FailureSeverity.Warning)
                 {
                     accessor.DeleteWarning(failureMessageAccessor);
