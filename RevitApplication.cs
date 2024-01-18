@@ -31,7 +31,21 @@ namespace FirstRevitPlugin
             ribbonPanel.AddSlideOut();
             AddComboBox(ribbonPanel);
             AddTextBox(ribbonPanel);
+
+
+            //application.DialogBoxShowing += Application_DialogBoxShowing;
+
+
             return Result.Succeeded;
+        }
+
+        private void Application_DialogBoxShowing(object sender, Autodesk.Revit.UI.Events.DialogBoxShowingEventArgs e)
+        {
+            //if (e.DialogId == "Dialog_API_MacroManager")
+            //{
+                //e.OverrideResult(2); // it should close macro manager right after its opening, be careful
+                TaskDialog.Show("Yes", "You opened a macro manager, cool!");
+            //}
         }
 
         private void AddPushButton(RibbonPanel ribbonPanel, string buttonName, string path, string linkToCommand, string toolTip)
