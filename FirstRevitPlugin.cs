@@ -21,43 +21,37 @@ namespace FirstRevitPlugin
         static AddInId addinId = new AddInId(new Guid("0F296157-A2DC-4532-BB1B-6D6D3462F15A"));
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIDocument uidoc = commandData.Application.ActiveUIDocument;
-            Document doc = uidoc.Document;
-            var i = 1;
-            var prefix = "PS"; // поменяйте на свой или оставьте пустым
-            var parameterName = "Марка"; // выберите свой текстовый параметр
-            using (TransactionGroup group = new TransactionGroup(doc, "Нумерация элементов"))
-            {
-                group.Start();
-                try
-                {
-                    using (Transaction transaction = new Transaction(doc, "Нумерация элементов"))
-                    {
-                        transaction.Start();
-                        var reference = uidoc.Selection.PickObject(ObjectType.Element, $"Выберите элемент {i}");
-                        var parameter = doc.GetElement(reference).LookupParameter(parameterName);
-                        if (parameter != null)
-                        {
-                            parameter.Set(prefix + i.ToString());
-                            i++;
-                            transaction.Commit();
-                        }
-                        else
-                        {
-                            TaskDialog.Show("Ошибка", $"У элемента {reference.ElementId} нет параметра {parameterName})");
-                            transaction.Commit();
-                            group.Assimilate();
-                        }
-                    }
-                }
-                catch
-                {
-                    group.Assimilate();
-                }
-            }
+            DrawArcWall(commandData);
+            //Numerate()
             //ManageParameters(commandData);
             //FindIntersection(commandData);
             return Result.Succeeded;
+        }
+        private static void DrawArcWall(ExternalCommandData commandData)
+        {
+            var uiDocument = commandData.Application.ActiveUIDocument;
+            var document = commandData.Application.ActiveUIDocument.Document;
+            var level = new FilteredElementCollector(document).
+                OfClass(typeof(Level))
+                .First();
+            var name = "Витраж";
+
+            var wallType = new FilteredElementCollector(document).
+                OfClass(typeof(WallType)).
+                FirstOrDefault(type => type.Name == name);
+
+            var point0 = uiDocument.Selection.PickPoint("Укажите начало дуги");
+            var point1 = uiDocument.Selection.PickPoint("Укажите конец дуги");
+            var point2 = uiDocument.Selection.PickPoint("Укажите точку на дуге");
+
+            var arc = Arc.Create(point0, point1, point2);
+
+            using (Transaction transaction = new Transaction(document, "Создание стены"))
+            {
+                transaction.Start();
+                Wall.Create(document, arc, wallType.Id, level.Id, 3000 / 304.8, 200 / 304.8, false, false);
+                transaction.Commit();
+            }
         }
         private static void ManageParameters(ExternalCommandData commandData)
         {
