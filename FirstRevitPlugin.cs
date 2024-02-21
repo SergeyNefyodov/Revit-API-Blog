@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,11 +23,109 @@ namespace FirstRevitPlugin
         static AddInId addinId = new AddInId(new Guid("0F296157-A2DC-4532-BB1B-6D6D3462F15A"));
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            DrawArcWall(commandData);
+            DivideWallsIntoParts(commandData);
+            DivideParts(commandData);
+            //DrawArcWall(commandData);
             //Numerate()
             //ManageParameters(commandData);
             //FindIntersection(commandData);
             return Result.Succeeded;
+        }
+
+        private static void DivideWallsIntoParts(ExternalCommandData commandData)
+        {
+            var uiDocument = commandData.Application.ActiveUIDocument;
+            var document = commandData.Application.ActiveUIDocument.Document;
+            var wallIds = new FilteredElementCollector(document).
+                OfClass(typeof(Wall)).
+                ToElementIds();
+
+            using (Transaction transaction = new Transaction(document, "Создание частей"))
+            {
+                transaction.Start();
+                foreach (var id in wallIds)
+                {
+                    var array = new ElementId[] { id };
+                    if (PartUtils.AreElementsValidForCreateParts(document, array))
+                    {
+                        PartUtils.CreateParts(document, array);
+                    }
+                }
+                transaction.Commit();
+            }
+        }
+
+        private static void DivideParts(ExternalCommandData commandData)
+        {
+            var uiDocument = commandData.Application.ActiveUIDocument;
+            var document = commandData.Application.ActiveUIDocument.Document;
+
+            var parts = new FilteredElementCollector(document).
+                OfClass(typeof(Part)).
+                Where(part => part.get_Parameter(BuiltInParameter.DPART_MATERIAL_ID_PARAM).AsValueString() == "Штукатурка").
+                Cast<Part>();
+
+            using (Transaction transaction = new Transaction(document, "Разделение частей"))
+            {
+                transaction.Start();
+
+                foreach (var part in parts)
+                {
+                    var array = new ElementId[] { part.Id };
+                    var wallId = part.GetSourceElementIds().FirstOrDefault().HostElementId;                    
+                    {
+                        if (document.GetElement(wallId) is Wall wall)
+                        {
+                            var levelArray = new ElementId[] { wall.LevelId };
+                            var horizStep = UnitUtils.ConvertToInternalUnits(1000, UnitTypeId.Millimeters);
+                            var vertStep = UnitUtils.ConvertToInternalUnits(500, UnitTypeId.Millimeters);
+                            var height = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).AsDouble();                            
+
+                            var locationCurve = (LocationCurve)wall.Location;
+                            var wallLine = (Line)locationCurve.Curve;
+                            var length = wallLine.Length;
+
+                            var startPoint = wallLine.GetEndPoint(0);
+                            var endPoint = wallLine.GetEndPoint(1);
+
+                            int n = 0; //number of horizontal lines
+                            int m = 0; //number of vertical lines
+
+                            var horizDiff = (endPoint - startPoint) * horizStep / (startPoint.DistanceTo(endPoint));
+                            startPoint -= horizDiff / 2;
+                            endPoint += horizDiff / 2;
+
+                            n = (int)Math.Ceiling(height / vertStep);
+                            m = (int)Math.Ceiling(length / horizStep)+1;
+
+                            var curves = new List<Curve>();
+
+                            for (int i = 0; i < m; i++)
+                            {
+                                var point = startPoint + i * horizDiff-XYZ.BasisZ;
+                                curves.Add(Line.CreateBound(point, new XYZ(point.X, point.Y, point.Z + height+4)));
+                            }
+
+                            for (int i = 0; i < n; i++)
+                            {
+                                var point0 = new XYZ(startPoint.X, startPoint.Y, startPoint.Z + i * vertStep);
+                                var point1 = new XYZ(endPoint.X, endPoint.Y, endPoint.Z + i * vertStep);
+                                curves.Add(Line.CreateBound(point0, point1));
+                            }
+
+                            document.Regenerate();
+                            var plane = Plane.CreateByThreePoints(curves.First().GetEndPoint(0), curves.Last().GetEndPoint(1),
+                                curves.Last().GetEndPoint(0) + XYZ.BasisZ);
+                            var sketchPlane = SketchPlane.Create(document, plane);
+                            document.Regenerate();
+
+                            PartUtils.DivideParts(document, array, levelArray, curves, sketchPlane.Id);
+                        }
+                    }
+                }
+
+                transaction.Commit();
+            }
         }
         private static void DrawArcWall(ExternalCommandData commandData)
         {
@@ -87,12 +187,12 @@ namespace FirstRevitPlugin
             }
         }
         private static Definition FindDefinition(string parameterName, DefinitionFile parametersFile)
-        {            
+        {
             foreach (var definitionGroup in parametersFile.Groups)
             {
                 foreach (ExternalDefinition definition in definitionGroup.Definitions)
                 {
-                    if (definition.Name == parameterName) return definition;                   
+                    if (definition.Name == parameterName) return definition;
                 }
             }
 
@@ -187,7 +287,7 @@ namespace FirstRevitPlugin
             int i = 1;
             string prefix = "PS"; // поменяйте на свой или оставьте пустым
             string parameterName = "Марка"; // выберите свой текстовый параметр
-            using (TransactionGroup group = new TransactionGroup(doc, "Нумерация элементов")) 
+            using (TransactionGroup group = new TransactionGroup(doc, "Нумерация элементов"))
             {
                 group.Start();
                 while (true)
