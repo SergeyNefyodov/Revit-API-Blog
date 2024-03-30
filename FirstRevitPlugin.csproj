@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandAvailibilityManager.cs" />
     <Compile Include="DwgMepCurveCreator\Command.cs" />
     <Compile Include="FailuresProcessing\TransactionHandler.cs" />
     <Compile Include="FailuresProcessing\WarningResolver.cs" />
@@ -74,4 +75,14 @@
     <Resource Include="Resources\wheel32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo configuration: $(Configuration)  
+if not exist "$(AppData)\Autodesk\Revit\Addins\2023\MyRevitCommands" mkdir "$(Appdata)\Autodesk\Revit\Addins\2023\MyRevitCommands"  
+xcopy /Q/Y "$(TargetDir)*.dll" "$(AppData)\Autodesk\Revit\Addins\2023\MyRevitCommands" 
+xcopy /Q/Y"$(TargetDir)*.addin" "$(AppData)\Autodesk\Revit\Addins\2023\"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>

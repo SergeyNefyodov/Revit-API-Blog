@@ -22,7 +22,10 @@ namespace FirstRevitPlugin
             string tabName = "My Custom Tab";
             application.CreateRibbonTab(tabName);
             RibbonPanel ribbonPanel = application.CreateRibbonPanel(tabName, "Автоматизация");
-            AddPushButton(ribbonPanel, "Button 1", assemblyPath, "FirstRevitPlugin.FirstRevitCommand", "Всплывающая подсказка");            
+
+            var button = AddPushButton(ribbonPanel, "Button 1", assemblyPath, "FirstRevitPlugin.FirstRevitCommand", "Всплывающая подсказка");
+            button.AvailabilityClassName = $"{nameof(FirstRevitPlugin)}.{nameof(CommandAvailibilityManager)}";
+
             AddPullDownButton(ribbonPanel, "Список команд");
             AddRadioButtonGroup(ribbonPanel, "Переключатели");
             ribbonPanel.AddSeparator();
@@ -48,12 +51,13 @@ namespace FirstRevitPlugin
             //}
         }
 
-        private void AddPushButton(RibbonPanel ribbonPanel, string buttonName, string path, string linkToCommand, string toolTip)
+        private PushButton AddPushButton(RibbonPanel ribbonPanel, string buttonName, string path, string linkToCommand, string toolTip)
         {
             var buttonData = new PushButtonData(buttonName, buttonName, path, linkToCommand);            
             var button = ribbonPanel.AddItem(buttonData) as PushButton;
             button.ToolTip = toolTip;
             button.LargeImage = (ImageSource) new BitmapImage(new Uri(@"/FirstRevitPlugin;component/Resources/engineer4.png", UriKind.RelativeOrAbsolute));
+            return button;
         }
 
         private void AddStackedButtons(RibbonPanel ribbonPanel, string buttonName, string path, string linkToCommand, string toolTip)
