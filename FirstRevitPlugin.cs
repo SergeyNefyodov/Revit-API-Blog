@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using FirstRevitPlugin.Extensions;
 
 namespace FirstRevitPlugin
 {
@@ -23,6 +24,12 @@ namespace FirstRevitPlugin
         static AddInId addinId = new AddInId(new Guid("0F296157-A2DC-4532-BB1B-6D6D3462F15A"));
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            if (RevitAPI.UiApplication == null)
+            {
+                RevitAPI.Initialize(commandData);
+            }
+            ElementId id = null;
+            id.SetTypeParameter("Name", "Value");
             DivideWallsIntoParts(commandData);
             DivideParts(commandData);
             //DrawArcWall(commandData);
@@ -319,6 +326,23 @@ namespace FirstRevitPlugin
                         group.Assimilate();
                         break;
                     }
+                }
+            }
+        }
+
+        private void SetTypeParameter(ElementId id, string parameterName, string value)
+        {
+            var element = RevitAPI.Document.GetElement(id);
+            var typeId = element.GetTypeId();
+            var type = RevitAPI.Document.GetElement(typeId);
+            var parameter = type.LookupParameter(parameterName);
+            if (parameter != null)
+            {
+                using (var transaction = new Transaction(RevitAPI.Document, $"Set parameter value for type {type.Name}"))
+                {
+                    transaction.Start();
+                    parameter.Set(value);
+                    transaction.Commit();
                 }
             }
         }
